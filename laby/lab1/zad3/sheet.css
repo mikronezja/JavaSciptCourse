@@ -1,0 +1,121 @@
+@media (max-width: 767px)
+{
+  body 
+  {
+    margin: 0;
+  }
+  h1
+  {
+    font-size: 6vw;
+  }
+  h2
+  {
+    font-size: 4vw;
+  }
+
+  blockquote
+  {
+  margin: 0;
+  font-size: 3vw;
+  }
+
+  .flex_box
+  {
+    display: flex;
+    flex-direction: column;
+  }
+
+  aside ul
+  {
+    font-size: 3vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .azure
+  {
+  background-color: #EFF;
+  }
+
+  nav ul 
+  {
+    font-size: 3vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-fragment-style
+  {
+  border-style: solid;
+  border-color: #A8A8A8;
+  box-shadow: 0 0 1% black;
+  }
+  footer {
+    font-size: 3vw;
+  }  
+
+}
+
+@media (min-width: 768px)
+{
+aside  {
+  display: inline-block;
+  margin: 1% 0;
+  width: 50%;
+}
+footer {
+  padding: 0.5%;
+  margin-top: 2%;
+}     
+
+header {
+}     
+
+h1,h2 {
+  margin: 0;
+  margin-left: 1%;
+}
+
+main { 
+  width: 40%;
+  padding: 1% 2% 1% 1%;
+  display: inline-block;
+}
+nav {
+  width: 30%;
+  height: 10%;
+}
+nav ul {
+  display: inline-block;
+  margin: 3% 2%;
+  padding: 7% 2% 7% 15%;
+}
+
+blockquote
+{
+  margin: 0;
+}
+
+.flex_box
+{
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.azure
+{
+  background-color: #EFF;
+}
+
+.page-fragment-style
+{
+  border-style: solid;
+  border-color: #A8A8A8;
+  box-shadow: 0 0 1% black;
+}
+}

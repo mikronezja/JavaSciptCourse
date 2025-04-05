@@ -1,0 +1,117 @@
+html{
+    --text-color-initial: rgb(90, 0, 0);
+    --text-color-final: rgb(255, 152, 255); 
+    overflow: visible;
+}
+body
+{
+    min-height: 150vh;
+    margin: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+}
+
+   aside  {
+    display: inline-block;
+    margin: 1% 0;
+    width: 50%;
+  }
+
+  footer {
+    padding: 0.5%;
+    margin-top: 2%;
+    animation: pulse;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+  }
+  
+  @keyframes pulse
+  {
+    0% {
+        scale: 0;
+    }
+    100%
+    {
+        scale: 1;
+    }
+  }
+  
+  header {
+  }     
+  
+  h1,h2 {
+    margin: 0;
+    margin-left: 1%;
+  }
+
+  /* napisy do animacji  */
+  h1
+  {
+    font-size: 3rem;
+  }
+
+
+  .animation-text
+  {
+    animation: color-change linear;
+    animation-timeline: scroll();
+    animation-range: contain;
+    animation-fill-mode: forwards;
+  }
+
+  /*animacja napisu*/
+  @keyframes color-change 
+  {
+    from { color: var(--text-color-initial); }
+    to {color: var(--text-color-final);}
+  } 
+
+  
+  main { 
+    width: 40%;
+    padding: 1% 2% 1% 1%;
+    display: inline-block;
+  }
+  nav {
+    width: 30%;
+    height: 10%;
+  }
+  nav ul {
+    display: inline-block;
+    margin: 3% 25px;
+    padding: 7% 2% 7% 15%;
+  }
+  
+  blockquote
+  {
+    margin: 0;
+  }
+  
+  .flex_box
+  {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .azure
+  {
+    background-color: #EFF;
+  }
+  
+  .page-fragment-style
+  {
+    border-style: solid;
+    border-color: #A8A8A8;
+    box-shadow: 0 0 7px black;
+  }
+  
+
+  .flex_box_center
+  {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }

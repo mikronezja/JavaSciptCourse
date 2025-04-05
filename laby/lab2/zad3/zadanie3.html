@@ -1,0 +1,24 @@
+<!-- @author Stanisław Polak <polak@agh.edu.pl> -->
+
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8">
+    <title>Płótno</title>
+  </head>
+  <body>
+    <main>
+      <h1>Płótno</h1>
+      <canvas id="canvas" style="border:1px solid #000000;">
+      Wygląda na to, że twoja przeglądarka nie obsługuje elementu "canvas" 
+      </canvas>
+    </main>
+
+    <script>
+        "use strict";                                       // Nie wyłączaj trybu ścisłego    
+        const canvas = document.getElementById("canvas");        // Używanie własności 'document.all' nie jest rekomendowane. Tutaj powinniśmy użyć standardu "DOM Living Standard"  — będzie on tematem kolejnych ćwiczeń.
+        let ctx = canvas.getContext('2d');                      // Utworzenie obiektu 'CanvasRenderingContext2D'       
+        ctx.fillText("Hello World", 10, canvas.height / 2); // Wykreślenie podanego tekstu na płótnie
+      </script>
+  </body>
+  </html>

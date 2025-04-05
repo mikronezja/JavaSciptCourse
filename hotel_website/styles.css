@@ -1,0 +1,14 @@
+.custom-navbar
+{
+    background-color: rgb(214, 255, 255);
+}
+
+.custom-navbar .nav-link
+{
+    color: black;
+}
+
+.custom-navbar .nav-link:hover
+{
+    color: gray;
+}
