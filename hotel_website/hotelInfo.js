@@ -9,7 +9,7 @@ const guests = ["Jan Kowalski", "Adam Adamczyk", "Katarzyna Kowalczyk", "Tomasz 
 
 // IndexDB
 let db; // database
-const request = indexedDB.open("HotelReservations", 1); // 1 - wersja bazy danych
+const request = indexedDB.open("HotelReservations", 7); // 1 - wersja bazy danych
 
 request.onerror = (event) => {
   console.error(`Database error: ${event.target.error?.message}`);
