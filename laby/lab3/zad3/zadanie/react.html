@@ -1,0 +1,162 @@
+<!-- @author Stanisław Polak <polak@agh.edu.pl> -->
+                        
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <title>
+            Example 1
+        </title>
+    </head>
+    <body>
+
+
+        <h2>setInterval / setTimeout()</h2>
+        <div id="root">
+            <!-- 
+                Container for the component.
+                React renders the specified HTML code inside the so-called container,
+                i.e. the element of the website we choose.
+            -->
+        </div>
+
+
+        <form onsubmit="event.preventDefault();">
+            <h2>requestAnimationFrame()</h2>
+            <label for="counter">Counter→</label>
+            <output id="counter" style="font-size: 4vh; color: red;">0</output>
+            <br>
+            <button id="start" onclick="startAnimation()">Start</button>
+            <button id="stop" disabled onclick="stopAnimation()">Stop</button>
+            <!-- ************************************************************** -->
+            <hr>
+            <h2>Time-consuming calculations in the main thread</h2>
+            <label for="result_main">Result:</label>
+            <output id="result_main">0</output>
+            <br>
+            <label for="iterations_main">Number of iterations:</label>
+            <input id="iterations_main" type="text" value="50" onfocus="document.forms[0].result_main.value ='0'">
+            <button
+                onclick="document.forms[0].result_main.value = calculatePrimes(document.forms[0].iterations_main.value || 50)">Run
+                calculations</button>
+            <!-- ************************************************************** -->
+            <h2>Time-consuming calculations in a separate thread</h2>
+            <label for="result_worker">Result:</label>
+            <output id="result_worker">0</output>
+            <br>
+            <label for="iterations_worker">Number of iterations:</label>
+            <input id="iterations_worker" type="text" value="50" onfocus="document.forms[0].result_worker.value ='0'">
+            <button
+                onclick="calculatePrimesInBackground(document.forms[0].iterations_worker.value || 50)">Run
+                calculations</button>
+        </form>
+
+        <!-- The 'Hello' component -->
+        <script type="text/babel" data-type="module">
+            import React from "https://esm.sh/react/?dev";                     
+            import ReactDOMClient from "https://esm.sh/react-dom/client/?dev"; 
+
+            // Component logic
+            function Hello() {
+                return <h1>Hello World!</h1>;
+            }
+
+            // Component counter
+            function Counter({initial, delay}) {
+
+                const [count, setCount] = React.useState(parseInt(initial));
+                const [doNotCount, setDoNotCount] = React.useState(true);
+                const intervalRef = React.useRef(null);
+
+                React.useEffect( () => {
+                    if(doNotCount === false)
+                    {
+                        intervalRef.current = setInterval( () => {
+                            setCount(prev => prev + 1);
+                        }, delay);
+                    }
+                    else 
+                    {
+                        clearInterval(intervalRef.current);
+                        intervalRef.current = null;
+                    }
+                }, [doNotCount])
+
+                return <>
+                    <div style={{backgroundColor: "#90EE90", padding: "20px", borderRadius: "20px", margin: "20px 0px"}}>
+                        <div>
+                        <span>Counter→</span><span style={{color: "red"}}>{count}</span>
+                        </div>
+                        <div>
+                            <button onClick={() => {
+                                setDoNotCount(false);
+                                }}>Start</button>
+                            <button onClick={() => {
+                                setDoNotCount(true);
+                            }}>Stop</button>
+                        </div>
+                    </div>
+                </>
+            }
+
+            const container = document.getElementById('root'); // Retrieving references per container
+            const root = ReactDOMClient.createRoot(container); // Creating a React root for the given container
+            root.render(<><Counter initial="0" delay="500"/><Counter initial="10" delay="50"/></>);                        // Component rendering
+        </script>
+
+        <script>
+            let animation;
+            let counter = 0;
+
+            function calculatePrimes(iterations) {
+                let primes = [];
+                for (let i = 0; i < iterations; i++) {
+                    let candidate = i * (1000000000 * Math.random());
+                    let isPrime = true;
+                    for (var c = 2; c <= Math.sqrt(candidate); ++c) {
+                        if (candidate % c === 0) {
+                            // not prime
+                            isPrime = false;
+                            break;
+                        }
+                    } 
+                    if (isPrime) {
+                        primes.push(candidate);
+                    }
+                }
+                return primes;
+            }
+
+            function calculatePrimesInBackground(iterations) {
+                const worker = new Worker('worker.js');
+                worker.postMessage(iterations)
+                
+                worker.onmessage = function(message)
+                {
+                    document.forms[0].result_worker.value = message.data;
+                }
+                worker.onerror = function(error)
+                {
+                    window.alert(error.message);
+                }
+            }
+
+            function startAnimation() {
+                document.forms[0].start.disabled = true;
+                document.forms[0].stop.disabled = false;
+                animation = window.requestAnimationFrame(step);
+            }
+
+            function step() {
+                document.forms[0].counter.value = counter++;
+                animation = window.requestAnimationFrame(step);
+            }
+
+            function stopAnimation() {
+                document.forms[0].start.disabled = false;
+                document.forms[0].stop.disabled = true;
+                window.cancelAnimationFrame(animation)
+            }
+        </script>
+    </body>
+</html>                        
