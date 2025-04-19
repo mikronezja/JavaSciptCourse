@@ -267,7 +267,7 @@ function display(event) {
     }
 
     query.onerror = function () {
-        console.log("[ERROR] Błąd przy wyświetlaniu");
+        window.alert("[ERROR] Błąd przy wyświetlaniu");
     }
 
 }
