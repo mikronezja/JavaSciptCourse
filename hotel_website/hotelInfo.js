@@ -12,7 +12,7 @@ let db; // database
 const request = indexedDB.open("HotelReservations", 7); // 1 - wersja bazy danych
 
 request.onerror = (event) => {
-  console.error(`Database error: ${event.target.error?.message}`);
+  window.alert(`Database error: ${event.target.error?.message}`);
 };
 
 request.onupgradeneeded = function () {
@@ -91,18 +91,18 @@ function addReservations(event) {
 
     if (hotel_rooms.get(parseInt(room)) === undefined)
     {
-        console.log("Taki pokój nie istnieje");
+        window.alert("Taki pokój nie istnieje");
         return;
     }
 
     if(guests.indexOf(guest) === -1) 
     {
-        console.log("Taki gość nie istnieje");
+        window.alert("Taki gość nie istnieje");
         return;
     }
     
     if (!db) {
-        console.log("Baza danych nie jest gotowa");
+        window.alert("Baza danych nie jest gotowa");
         return;
     }
 
@@ -113,12 +113,12 @@ function addReservations(event) {
 
     if (isNaN(room))
     {
-        console.log("Wypełnij formularz prawidłowo")
+        window.alert("Wypełnij formularz prawidłowo")
         return;
     }
 
     if (!room || !guest) {
-        console.log("Wypełnij wszystkie pola");
+        window.alert("Wypełnij wszystkie pola");
         return;
     }
 
@@ -133,7 +133,7 @@ function addReservations(event) {
         {
             if (reservation.result >= 1)
             {
-                console.log("Taka rezerwacja już istnieje");
+                window.alert("Taka rezerwacja już istnieje");
                 return;
             }
         }
@@ -142,7 +142,7 @@ function addReservations(event) {
             const addRequest = store.add({room, guest});
 
             addRequest.onsuccess = function () {
-                console.log("Rezerwacja dodana");
+                window.alert("Rezerwacja dodana");
                 
                 if (countGuestsInRoom.result + 1 === hotel_rooms.get(parseInt(room))[0])
                 {
@@ -153,11 +153,11 @@ function addReservations(event) {
             };
     
             addRequest.onerror = function () {
-                console.log("[ERROR] w dodawaniu rezerwacji");
+                window.alert("[ERROR] w dodawaniu rezerwacji");
             };
         }
         else {
-            console.log("Pokój już zajęty")
+            window.alert("Pokój już zajęty")
         }
     }
 }
@@ -168,7 +168,7 @@ function deleteReservation(event) {
     const [room, guest] = splitAfterFirstSpace(textForm.value)
 
     if (!db) {
-        console.log("Baza danych nie jest gotowa");
+        window.alert("Baza danych nie jest gotowa");
         return;
     }
 
@@ -182,24 +182,24 @@ function deleteReservation(event) {
         const records = query.result;
 
         if(records.length === 0){
-            console.log("Nie ma takiej rezerwacji");
+            window.alert("Nie ma takiej rezerwacji");
             return;
         }
 
         const deleteRequest = store.delete(records[0].id);
         deleteRequest.onsuccess = function () {
-            console.log("Rezerwacja usunięta");
+            window.alert("Rezerwacja usunięta");
             document.getElementById("room-" + room).style.opacity = 1;
         }
 
         deleteRequest.onerror = function () {
-            console.log("[ERROR] w usuwaniu rezerwacji");
+            window.alert("[ERROR] w usuwaniu rezerwacji");
         }
     }
 
     query.onerror = function ()
     {
-        console.log("[ERROR] w wyszukaniu rezerwacji");
+        window.alert("[ERROR] w wyszukaniu rezerwacji");
     }
 }
 
@@ -209,19 +209,19 @@ function display(event) {
     const room = textForm.value
 
     if (!db) {
-        console.log("Baza danych nie jest gotowa");
+        window.alert("Baza danych nie jest gotowa");
         return;
     }
 
     if (isNaN(room))
     {
-        console.log("Podaj dobry number pokoju (liczbe)");
+        window.alert("Podaj dobry number pokoju (liczbe)");
         return;
     }
 
     if (hotel_rooms.get(parseInt(room)) === undefined)
     {
-        console.log("Taki pokoj nie istnieje");
+        window.alert("Taki pokoj nie istnieje");
         return;
     }
 
@@ -263,7 +263,7 @@ function display(event) {
         });
         }
 
-        document.body.appendChild(displayContainer);
+        document.getElementById("display").appendChild(displayContainer);
     }
 
     query.onerror = function () {
