@@ -30,6 +30,58 @@ request.onsuccess = function (event) {
     document.getElementById("dodaj").disabled = false;
     document.getElementById("usun").disabled = false;
     document.getElementById("wyswietl").disabled = false;
+
+    // data base has loaded
+    let main = document.querySelector('main');
+    hotel_rooms.forEach((value, key) => {
+
+        const transaction = db.transaction("Reservations", "readonly");
+        const store = transaction.objectStore("Reservations");
+        const roomIndex = store.index("roomNumber");
+
+        const countGuestsInRoom = roomIndex.count(String(key));
+        countGuestsInRoom.onsuccess = function()
+        {
+            let card = document.createElement("div");
+            // adding classes to card
+            card.classList.add("card", "col-lg-5", "mx-5", "my-5");
+
+            // things inside of a card 
+            // img
+            let img = document.createElement("img");
+            img.id = "room-" + key; 
+            img.src = "public/hotel_room.jpg";
+            img.classList.add("card-img-top");
+            card.appendChild(img);
+            // card body 
+            let cardBody = document.createElement("div");
+            cardBody.classList.add("card-body");
+            card.appendChild(cardBody);
+
+            let cardContent = document.createElement("div");
+            cardContent.classList.add("table-responsive-lg", "d-flex", "justify-content-center");
+            cardBody.appendChild(cardContent);
+
+            let roomNumber = document.createElement("h3")
+            roomNumber.innerText = "Pokój numer " + key;
+            cardContent.appendChild(roomNumber);
+
+            if (countGuestsInRoom.result === value[0]) // limit of places!
+            {
+                img.style.opacity = 0.4;
+            }
+            
+            main.appendChild(card);
+            main.classList.add("d-flex", "justify-content-center", "row");
+        }
+
+        countGuestsInRoom.onerror = function ()
+        {
+            window.alert("Error with making db index!")
+        }
+
+    })
+
 };
 
 function addReservations(event) {
@@ -71,7 +123,7 @@ function addReservations(event) {
     }
 
     // sprawdzic miejsca w pokoju 
-    const countGuestsInRoom = roomIndex.count(room)
+    const countGuestsInRoom = roomIndex.count(room);
 
     countGuestsInRoom.onsuccess = function () 
     {
@@ -91,6 +143,12 @@ function addReservations(event) {
 
             addRequest.onsuccess = function () {
                 console.log("Rezerwacja dodana");
+                
+                if (countGuestsInRoom.result + 1 === hotel_rooms.get(parseInt(room))[0])
+                {
+                    document.getElementById("room-" + room).style.opacity = 0.4;
+                }
+
                 document.forms.reserve.reset();
             };
     
@@ -131,6 +189,7 @@ function deleteReservation(event) {
         const deleteRequest = store.delete(records[0].id);
         deleteRequest.onsuccess = function () {
             console.log("Rezerwacja usunięta");
+            document.getElementById("room-" + room).style.opacity = 1;
         }
 
         deleteRequest.onerror = function () {
