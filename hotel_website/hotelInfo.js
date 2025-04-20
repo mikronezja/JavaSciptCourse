@@ -25,11 +25,10 @@ request.onupgradeneeded = function () {
     }
 };
 
+let draggedRoom = "";
+
 request.onsuccess = function (event) {
     db = event.target.result;
-    document.getElementById("dodaj").disabled = false;
-    document.getElementById("usun").disabled = false;
-    document.getElementById("wyswietl").disabled = false;
 
     // data base has loaded
     let main = document.querySelector('main');
@@ -42,16 +41,19 @@ request.onsuccess = function (event) {
         const countGuestsInRoom = roomIndex.count(String(key));
         countGuestsInRoom.onsuccess = function()
         {
+            let cont = document.createElement("div");
+            cont.classList.add("row");
+
             let card = document.createElement("div");
             // adding classes to card
-            card.classList.add("card", "col-lg-5", "mx-5", "my-5");
-
+            card.classList.add("card", "col-lg-2","my-3", "col-12", "col-md-6");
             // things inside of a card 
             // img
             let img = document.createElement("img");
             img.id = "room-" + key; 
             img.src = "public/hotel_room.jpg";
-            img.classList.add("card-img-top");
+            img.draggable = true;
+            img.classList.add("card-img-top", "img-fluid");
             card.appendChild(img);
             // card body 
             let cardBody = document.createElement("div");
@@ -68,11 +70,67 @@ request.onsuccess = function (event) {
 
             if (countGuestsInRoom.result === value[0]) // limit of places!
             {
-                img.style.opacity = 0.4;
+                img.style.opacity = "0.4";
+            }
+            else 
+            {
+                img.setAttribute("data-bs-toggle","modal");
+                img.setAttribute("data-bs-target","#staticBackdrop");
             }
             
-            main.appendChild(card);
-            main.classList.add("d-flex", "justify-content-center", "row");
+            cont.appendChild(card);
+            main.appendChild(cont);
+            img.addEventListener("click", (e) => {
+                if (img.style.opacity !== "0.4")
+                {
+                    document.getElementById("backdropBtn").onclick = () => addReservations(e,String(key)); // it loads the name and surname from textfield!
+                }
+            });
+
+            img.addEventListener("mouseenter", async () => {
+                let container = document.createElement("div");
+                container.id = "display_text" + key;
+                container.classList.add("d-flex", "flex-column", "justify-content-center", "align-items-center",  "col-12", "col-md-6");
+                
+                try {
+                    const texts = await getText(String(key));  // Wait for DB result
+                    
+                    let maintxt = document.createElement("h3");
+                    container.appendChild(maintxt);
+                    if(texts.length > 0)
+                    {
+                        maintxt.textContent = "Lista gości";
+
+                        texts.forEach(element => {
+                            let paragraph = document.createElement("p");
+                            paragraph.textContent = element;
+                            container.appendChild(paragraph);
+                        });
+                    }
+                    else
+                    {
+                        maintxt.textContent = "Brak gości";
+                    }
+                    cont.appendChild(container);
+                } catch (err) {
+                    window.alert("Error fetching text for room:", err);
+                }
+            });
+            img.addEventListener("mouseleave", () => {
+                let p = document.getElementById("display_text" + key);
+                if( p )
+                {
+                    p.remove();
+                }
+            });
+            img.addEventListener("dragstart", (e) => {
+                draggedRoom = String(key);
+            })
+
+            img.addEventListener("dragend", (e) => {
+                e.preventDefault();
+                draggedRoom = "";
+            })
         }
 
         countGuestsInRoom.onerror = function ()
@@ -84,10 +142,9 @@ request.onsuccess = function (event) {
 
 };
 
-function addReservations(event) {
+function addReservations(event, room) {
     event.preventDefault();
-    const textForm = document.forms.reserve.text_field; 
-    const [room, guest] = splitAfterFirstSpace(textForm.value)
+    const guest = document.getElementById("text_field").value
 
     if (hotel_rooms.get(parseInt(room)) === undefined)
     {
@@ -136,36 +193,69 @@ function addReservations(event) {
                 window.alert("Taka rezerwacja już istnieje");
                 return;
             }
+
+            if(countGuestsInRoom.result < hotel_rooms.get(parseInt(room))[0]){
+                const addRequest = store.add({room, guest});
+
+                addRequest.onsuccess = function () {
+                    window.alert("Rezerwacja dodana");
+                    
+                    if (countGuestsInRoom.result + 1 === hotel_rooms.get(parseInt(room))[0])
+                    {
+                        document.getElementById("room-" + room).style.opacity = 0.4;
+                        document.getElementById("room-" + room).removeAttribute("data-bs-toggle");
+                        document.getElementById("room-" + room).removeAttribute("data-bs-target");
+                    }
+
+                    document.getElementById("text_field").value = "";
+                };
+        
+                addRequest.onerror = function () {
+                    window.alert("[ERROR] w dodawaniu rezerwacji");
+                };
+            }
+            else {
+                window.alert("Pokój już zajęty")
+            }
         }
 
-        if(countGuestsInRoom.result < hotel_rooms.get(parseInt(room))[0]){
-            const addRequest = store.add({room, guest});
-
-            addRequest.onsuccess = function () {
-                window.alert("Rezerwacja dodana");
-                
-                if (countGuestsInRoom.result + 1 === hotel_rooms.get(parseInt(room))[0])
-                {
-                    document.getElementById("room-" + room).style.opacity = 0.4;
-                }
-
-                document.forms.reserve.reset();
-            };
-    
-            addRequest.onerror = function () {
-                window.alert("[ERROR] w dodawaniu rezerwacji");
-            };
-        }
-        else {
-            window.alert("Pokój już zajęty")
+        reservation.onerror = function () 
+        {
+            window.alert("reservation alert!");
         }
     }
 }
 
-function deleteReservation(event) {
+function getText(room) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction("Reservations", "readonly");
+        const store = transaction.objectStore("Reservations");
+        const index = store.index("roomNumber");
+
+        const query = index.getAll(room);
+
+        query.onsuccess = function () {
+            const resultArray = query.result;
+
+            if (resultArray.length === 0) {
+                resolve([]);
+            } else {
+                // return an array of guest names
+                resolve(resultArray.map(res => res.guest));
+            }
+        };
+
+        query.onerror = function () {
+            window.alert("Error when displaying!");
+            reject([]);
+        };
+    });
+}
+
+function deleteReservation(event, room) {
     event.preventDefault();
-    const textForm = document.forms.reserve.text_field; 
-    const [room, guest] = splitAfterFirstSpace(textForm.value)
+    const textForm = document.getElementById("text_field"); 
+    const guest = textForm.value
 
     if (!db) {
         window.alert("Baza danych nie jest gotowa");
@@ -187,9 +277,17 @@ function deleteReservation(event) {
         }
 
         const deleteRequest = store.delete(records[0].id);
-        deleteRequest.onsuccess = function () {
+        deleteRequest.onsuccess = function () 
+        {
             window.alert("Rezerwacja usunięta");
             document.getElementById("room-" + room).style.opacity = 1;
+
+            if(!document.getElementById("room-" + room).hasAttribute("data-bs-toggle"))
+            {
+                document.getElementById("room-" + room).setAttribute("data-bs-toggle","modal");
+                document.getElementById("room-" + room).setAttribute("data-bs-target","#staticBackdrop");
+            }
+            textForm.value = "";
         }
 
         deleteRequest.onerror = function () {
@@ -276,3 +374,19 @@ function splitAfterFirstSpace(str) {
     let index = str.indexOf(" ");
     return index !== -1 ? [str.slice(0, index), str.slice(index + 1)] : [str, ""];
 }
+
+document.getElementById("bin").addEventListener("dragover", (e) => {
+    e.preventDefault();
+})
+
+document.getElementById("bin").addEventListener("drop", (e) => {
+    e.preventDefault();
+    if ( draggedRoom !== "")
+    {
+        deleteReservation(e, draggedRoom);
+    }
+    else 
+    {
+        window.alert("No room is being dragged to bin!");
+    }
+})
