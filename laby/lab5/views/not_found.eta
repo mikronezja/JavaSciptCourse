@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= it.title %></title>
+  </head>
+  <body>
+    <main>
+      <h2>The faculty was not found. Type the URL with /faculty_name</h2>
+    </main>
+  </body>
+</html>

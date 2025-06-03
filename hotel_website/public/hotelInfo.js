@@ -2,11 +2,11 @@ function display(event) { // zaladuje wszystkie dane
     event.preventDefault();
     
     const textField = document.getElementById("text_field");
-    const roomNumber = textField.value.trim();
+    const room = textField.value.trim();
     
     // request 
     const requestData = {
-        roomNumber: roomNumber
+        room: room
     };
     
     // POST request
@@ -39,11 +39,11 @@ function display(event) { // zaladuje wszystkie dane
         
         //
         data.forEach((record) => {
-            const roomNumber = record.roomNumber;
+            const room = record.room;
             const names = record.guests;
             
             const title = document.createElement("h4");
-            title.innerText = `Lista gości w pokoju ${roomNumber}`;
+            title.innerText = `Lista gości w pokoju ${room}`;
             displayContainer.appendChild(title);
             
             if (!names || names.length === 0) {
@@ -71,87 +71,86 @@ function load(event)
 {
     event.preventDefault();
 
-     fetch('/load')
-     .then(response => {
+    fetch('/load')
+    .then(response => {
         return response.json().then(data => {
             if (!response.ok) {
                 throw new Error(data.error || `${response.error}`);
             }
             return data;
         });
-     })
-     .then(data => {
+    })
+    .then(data => {
         document.getElementById("dodaj").disabled = false;
         document.getElementById("usun").disabled = false;
         document.getElementById("wyswietl").disabled = false;
 
         // database has loaded
-        let main = document.querySelector('main');
-        let cont = document.createElement("div");
+        const main = document.querySelector('main');
+        const cont = document.createElement("div");
         cont.classList.add("d-flex","gap-4","mx-4","flex-wrap", "justify-content-center", "align-items-center");
 
         const max_rooms = data.maxData;
         const current_data = data.currentData;
+        console.log("Max rooms:", max_rooms);
+        console.log("Current data:", current_data);
 
-        max_rooms.split('\n').forEach( (value, key) => 
-        {
-            const [room, max_space] = value.split(':');
-            current_data.split('\n').forEach( (val, key) => {
+        max_rooms.forEach((maxRoom, index) => {
+            const { room, number_of_places } = maxRoom; // maxRoom ma room i number_of_places
+            
+            const currentRoom = current_data.find(currentData => currentData.room === room);
+            
+            if (currentRoom) {
+                const { guests } = currentRoom;
+                
+                const card = document.createElement("div");
+                card.classList.add("card", "col-lg-4");
+                
+                // img
+                const img = document.createElement("img");
+                img.id = "room-" + room;
+                img.src = "hotel_room.jpg";
+                img.classList.add("card-img-top", "img-fluid");
+                card.appendChild(img);                    
 
-                const [projectingRoom, guests] = val.split(':')
+                const cardBody = document.createElement("div");
+                cardBody.classList.add("card-body");
+                card.appendChild(cardBody);
 
-                if ( projectingRoom === room )
-                {
-                    
-                    let card = document.createElement("div");
-                    card.classList.add("card", "col-lg-4");
-                    // things inside of a card 
-                    // img
-                    let img = document.createElement("img");
-                    img.id = "room-" + (key+1); 
-                    img.src = "public/hotel_room.jpg";
-                    img.classList.add("card-img-top", "img-fluid");
-                    card.appendChild(img);                    
+                const cardContent = document.createElement("div");
+                cardContent.classList.add("table-responsive-lg", "d-flex", "justify-content-center");
+                cardBody.appendChild(cardContent);
 
-                    let cardBody = document.createElement("div");
-                    cardBody.classList.add("card-body");
-                    card.appendChild(cardBody);
+                const room_elem = document.createElement("h3");
+                room_elem.innerText = "Pokój numer " + room; 
+                cardContent.appendChild(room_elem);
 
-                    let cardContent = document.createElement("div");
-                    cardContent.classList.add("table-responsive-lg", "d-flex", "justify-content-center");
-                    cardBody.appendChild(cardContent);
 
-                    let roomNumber = document.createElement("h3")
-                    roomNumber.innerText = "Pokój numer " + (key+1);
-                    cardContent.appendChild(roomNumber);
-
-                    // max num of places!
-                    if ( guests.split(',').length === max_space )
-                    {
-                        img.style.opacity = "0.4";
-                    }
-
-                    cont.appendChild(card);
+                if (guests.length >= number_of_places) {
+                    img.style.opacity = "0.4";
                 }
-            })
 
-        })
+                cont.appendChild(card);
+            }
+        });
+        
         main.appendChild(cont);
-      })
-      .catch( error => {
+    })
+    .catch(error => {
+        console.error("Load error:", error);
         window.alert(error.message);
-      } );
+    });
 }
 
 function addReservations(event)
 {
     event.preventDefault();
     const textField = document.getElementById("text_field");
-    const [roomNumber, guestName] = splitAfterFirstSpace(textField.value);
+    const [room, guest] = splitAfterFirstSpace(textField.value);
     
     const requestData = {
-        roomNumber: roomNumber,
-        guestName: guestName
+        room: parseInt(room),
+        guest: guest
     };    
 
     // POST request
@@ -175,7 +174,7 @@ function addReservations(event)
         // if data = 1 added but not remaining space
         if (parseInt(data) === 1)
         {
-            document.getElementById("room-" + roomNumber).style.opacity = 0.4;
+            document.getElementById("room-" + room).style.opacity = 0.4;
         }
         window.alert('Reservation added!');
 
@@ -189,11 +188,11 @@ function deleteReservation(event)
 {
     event.preventDefault();
     const textField = document.getElementById("text_field");
-    const [roomNumber, guestName] = splitAfterFirstSpace(textField.value);
+    const [room, guest] = splitAfterFirstSpace(textField.value);
     
     const requestData = {
-        roomNumber: roomNumber,
-        guestName: guestName
+        room: parseInt(room),
+        guest: guest
     };
     
     fetch('/deleteReservation', {
@@ -212,7 +211,7 @@ function deleteReservation(event)
         });
     })
     .then(data => {
-        document.getElementById("room-" + roomNumber).style.opacity = 1;
+        document.getElementById("room-" + room).style.opacity = 1;
         window.alert('Reservation deleted!');
     })
     .catch(error => {

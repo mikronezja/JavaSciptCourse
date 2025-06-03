@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>Students</title>
+</head>
+<body>
+    <style>
+        table, th, td 
+        {
+        border:1px solid grey;
+        }
+        td,th {
+            padding: 10px;
+        }
+    </style>
+
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {loadStudents(students)});
+        let students = [
+            {
+                    fname: 'Jan',
+                    lname: 'Kowalski',
+                    faculty: 'WI'
+            },
+            {
+                    fname: 'Anna',
+                    lname: 'Nowak',
+                    faculty: 'WMS'
+            },
+            {
+                    fname: 'Tomasz',
+                    lname: 'Zieliński',
+                    faculty: 'WZ'
+            },
+            {
+                    fname: 'Katarzyna',
+                    lname: 'Mazur',
+                    faculty: 'WMS'
+            },
+            {
+                    fname: 'Michał',
+                    lname: 'Dąbrowski',
+                    faculty: 'WIMIP'
+            },
+            {
+                    fname: 'Julia',
+                    lname: 'Wójcik',
+                    faculty: 'WI'
+            },
+            {
+                    fname: 'Piotr',
+                    lname: 'Szymański',
+                    faculty: 'WIET'
+            },
+            {
+                    fname: 'Natalia',
+                    lname: 'Kubiak',
+                    faculty: 'WIET'
+            },
+            {
+                    fname: 'Łukasz',
+                    lname: 'Pawlak',
+                    faculty: 'WIMIC'
+            },
+            {
+                    fname: 'Aleksandra',
+                    lname: 'Król',
+                    faculty: 'WGGIOŚ'
+            }
+        ];
+        
+
+        function loadStudents(st)
+        {
+            if (st.length == 0)
+            {
+                const text = document.createElement('h2');
+                text.textContent = "Students do not exits";
+                document.body.appendChild(text);
+            }
+            else 
+            {
+                const table = document.createElement("table");
+                table.style.width = "100%";
+                const headers = [];
+                for (let i = 0; i < 3; ++i)
+                {
+                    headers.push(document.createElement("th"));
+                }
+                headers[0].textContent = 'First name';
+                headers[1].textContent = 'Last name';
+                headers[2].textContent = 'Faculty';
+
+                const headers_tr = document.createElement("tr");
+
+                headers.forEach(element => {
+                    headers_tr.appendChild(element);
+                });
+                
+                table.appendChild(headers_tr);
+
+                st.forEach(element => {
+                    const tr = document.createElement("tr");
+                    ["fname", "lname", "faculty"].forEach(key => {
+                        const td = document.createElement("td");
+                        td.textContent = element[key];
+                        tr.appendChild(td);
+                    });
+                    table.appendChild(tr);
+                });
+                document.body.appendChild(table);
+            }
+        }
+    </script>
+</body>
+</html>
