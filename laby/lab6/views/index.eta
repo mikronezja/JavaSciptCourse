@@ -25,7 +25,8 @@
       /**************************************************************************************/
       function getName(http_method){
           let name = '';
-      
+          name = http_method == "GET" ? document.getElementById("name_GET").value : document.getElementById("name_POST").value
+          console.log('getName called with:', http_method, 'result:', name); 
           // TODO: Here put the code that, depending on the value of the 'http_method' variable — GET / POST — assigns the 'name' variable to the value of the 'name_GET' / 'name_POST' form field
       
           return name;
@@ -53,10 +54,24 @@
               if (xhr.status === 200) {
                   console.group('AJAX');
                   console.log(`HTTP method ⟶\t\t${http_method}\nResponse type ⟶\t${response_type}\nInput data ⟶\t\t${name}`);
-                  console.log(xhr.response);
+                  console.log('RESPONSE:', xhr.response);
                   console.groupEnd();
-                  if(show_alert)
-                      window.alert(xhr.response);
+                  if(show_alert) {
+                      let alertMessage = "";
+                      if (response_type === 'json')
+                      {
+                         alertMessage = JSON.stringify(xhr.response);
+                      }
+                      else if(response_type === 'document')
+                      {
+                         alertMessage = new XMLSerializer().serializeToString(xhr.response.documentElement);
+                      }
+                      else
+                      {
+                        alertMessage = xhr.response;
+                      }
+                      window.alert(alertMessage);
+                  }
                   else { 
                       results.set(`ajax ${http_method} ${response_type}`, xhr.response);
                       dispatchEvent(received); 
@@ -79,7 +94,8 @@
           // Specifying connection parameters
           //*********************************
           if(http_method === 'GET') {
-              xhr.open('GET', 'http://localhost:8000/submit', true); // TO BE MODIFIED
+                                                            // MODIFIED HERE!
+              xhr.open('GET', `http://localhost:8000/submit?name=${encodeURIComponent(name)}`, true); // TO BE MODIFIED
           }    
           if(http_method === 'POST'){
               xhr.open('POST', 'http://localhost:8000/submit', true);
@@ -105,7 +121,9 @@
           }
           if(http_method === 'POST') { 
               // TO BE ADDED: you must specify the value of the 'Content-type' header — you must inform the server that the body content contains data of the "application/x-www-form-urlencoded" type
-              xhr.send(null); // TO BE MODIFIED
+              xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+             // xhr.send(null); // TO BE MODIFIED
+              xhr.send(`name=${encodeURIComponent(name)}`);
           }
       }
       
@@ -132,7 +150,7 @@
           //--------------------------------------------------------------------------
               ((http_method) => {
                   if(http_method === 'GET')
-                      return fetch('http://localhost:8000/submit', { // TO BE MODIFIED
+                      return fetch(`http://localhost:8000/submit?name=${encodeURIComponent(name)}`, { // TO BE MODIFIED
                           method: 'GET',
                           credentials: "include", // DO NOT MODIFY OR REMOVE
                           headers: {
@@ -147,9 +165,10 @@
                           method: 'POST',
                           credentials: "include", // // DO NOT MODIFY OR REMOVE
                           // TO BE ADDED — you need to determine the content of the body
+                          body: `name=${encodeURIComponent(name)}`,
                           headers: {
                                 // TO BE ADDED: you must specify the value of the 'Content-type' header — you must inform the server that the body content contains data of the "application/x-www-form-urlencoded" type
-                              
+                              'Content-type': 'application/x-www-form-urlencoded',
                               //****************************************************************************************
                               // What is the acceptable data type—the server part should return data of the given type
                               //****************************************************************************************
@@ -174,10 +193,25 @@
                   //If the received data is a JSON document
                   result = response.json();
               }
-              console.log(result);
+              console.log("FETCH API: ", result);
               console.groupEnd();   
-              if(show_alert)
-                  window.alert(result);  
+              if(show_alert) {
+                  result.then(data => {
+                      let alertMessage = "";
+                      if (response_type === 'json') {
+
+                          alertMessage = JSON.stringify(data);
+
+                      } else if (response_type === 'xml') {
+
+                          alertMessage = data;
+
+                      } else {
+                        alertMessage = data;
+                      }
+                      window.alert(alertMessage);
+                  });
+              }
               else {
                   results.set(`fetch ${http_method} ${response_type}`, result);
                   dispatchEvent(received);
