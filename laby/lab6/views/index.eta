@@ -70,7 +70,7 @@
                       {
                         alertMessage = xhr.response;
                       }
-                      window.alert(alertMessage);
+                      document.getElementById("response_div").textContent = alertMessage;
                   }
                   else { 
                       results.set(`ajax ${http_method} ${response_type}`, xhr.response);
@@ -111,8 +111,8 @@
               case 'document':
                   xhr.setRequestHeader('Accept', 'application/xml');
                   break;
-          }  
-      
+          }
+                
           //****************************
           // Making an asynchronous call
           //****************************
@@ -209,7 +209,7 @@
                       } else {
                         alertMessage = data;
                       }
-                      window.alert(alertMessage);
+                      document.getElementById("response_div").textContent = alertMessage;
                   });
               }
               else {
@@ -291,6 +291,10 @@
         </tr>
       </table>
     </main>
+    <h1>Response:</h1>
+    <div id="response_div">
+
+    </div>
     <h1>Unit tests</h1>
     <button onclick="window.location.reload();">Restart</button>
     <div id="mocha"></div>
