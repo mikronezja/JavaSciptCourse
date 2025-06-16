@@ -1,0 +1,15 @@
+.calendar-row {
+    display: block;
+    flex-wrap: nowrap;
+}
+
+.calendar-col {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    padding: 8px 4px;
+    border: 1px solid #ddd;
+    min-height: 30px;
+    min-width: 50px;
+    display: inline-block;
+}

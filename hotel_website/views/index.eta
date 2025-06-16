@@ -40,82 +40,46 @@
     </header>
 
     <main>
-        <div class="container my-3 mx-3">
-            <div class="row d-flex justify-content-center">
-                <div class="col-lg-3">
-                    <div class="card">
-                        <img src="rynek.jpg" class="card-img-top" alt="">
-                        <div class="card-body">
-                            <div class="table-responsive-lg">
-                                <h3>Dostępne terminy</h3>
-                                <table class="table">
-                                    <thead class="table-dark">
-                                        <th scope="col">Miesiąc</th>
-                                        <th scope="col">Dni</th>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>VII</td>
-                                            <td>14-21, 30-31</td>
-                                        </tr>
-                                        <tr>
-                                            <td>VIII</td>
-                                            <td>1-12</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <button type="button" class="btn btn-primary">Zarezerwuj</button>
-                        </div>
+        <!-- kalendarz -->
+        <div class="container-fluid my-3 mx-3"> 
+            <div class="row">
+                <div class="col-md-6" >
+                    <div class="row d-flex justify-content-center" id="calendar">
+                        <h3>
+                        Kalendarz
+                        </h3>
                     </div>
                 </div>
-            </div>
-            <div class="row d-flex justify-content-evenly">
-                <div class="col-lg-3 my-3">
-                    <div class="card w-auto">
-                        <img src="hotel_room.jpg" class="card-img-top" alt=""/>
-                        <div class="card-body">
-                            <h5 class="card-title">Ceny noclegu</h5>
-                            <ul>
-                                <li>
-                                    Pokój 1-osobowy - 100zł
-                                </li>
-                                <li>
-                                    Pokój 2-osobowy - 200zł
-                                </li>
-                            </ul>
-                        </div>
+                <div class="col-md-6">
+                    <div class="row d-flex justify-content-center" id="reservation">
+                        <h3>
+                            Lista rezerwacji gości
+                        </h3>
                     </div>
                 </div>
-
-                <div class="col-lg-3 my-3">
-                    <div class="card w-auto">
-                        <img src="address.jpg" class="card-img-top" alt=""/>
-                        <div class="card-body">
-                            <h5 class="card-title">Adres</h5>
-                            <p class="card-text">ul Popiełuszki 1234</p>
-                            <p class="card-text">30-898 Kraków</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row d-flex justify-content-center">
-                <div class="col-lg-3 my-3">
-                    <div class="card w-auto">
-                        <div class="card-body">
-                            <h5 class="card-title">Atrakcje miasta</h5>
-                            <div class="ratio ratio-16x9">
-                                <iframe
-                                src="https://www.youtube.com/embed/Swd3OsoYRIw?si=iqC6_-iafK6z1Jwr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
-                                </iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </div>       
         </div>
     </main>
+
+
+    <div class="modal fade" id="addReservationModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tytul-modulu">Modal title</h5>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <textarea required placeholder="Imie i nazwisko" id="imie_i_nazwisko"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="doessth">Save changes</button>
+            </div>
+            </div>
+        </div>
+    </div>
 
     <footer class="footer mt-auto py-3 sticky-bottom">
         <div class="container-fluid">
@@ -136,10 +100,307 @@
                 </div>
         </div>
     </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script type="module">
         import {draw_crescent} from "./logo.js"
         draw_crescent();
+    </script>
+    <script>
+        let dragged_date;
+        let dragged_room;
+        let dragged_person;
+        let dragging;
+
+        const modalElement = document.getElementById('addReservationModal');
+        const modal = new bootstrap.Modal(modalElement);
+
+        function onclose(e) {
+            e.preventDefault();
+            if (modal) {
+                modal.hide();
+            }
+        }
+
+        async function reserve(e)
+        {
+            e.preventDefault();
+            console.log("HELLO!!",dragged_date);
+            if(dragged_date)
+            {
+                try {
+                    await fetch('http://localhost:8000/addReservations', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ room: dragged_room, 
+                                guest: document.getElementById("imie_i_nazwisko").value })
+                            });
+                }
+                catch (error)
+                {
+                    console.log(error);
+                }
+            }
+            dragged_date = undefined;
+            displayData();
+            dragging = false;
+        }
+
+        async function cancel(e)
+        {
+            e.preventDefault();
+            if(dragged_room && dragged_person)
+            {
+                try {
+                    await fetch('http://localhost:8000/deleteReservation', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ room: dragged_room, 
+                                guest: dragged_person})
+                            });
+                } catch(error)
+                {
+                    console.log(error);
+                }
+            }
+            dragged_room = undefined;
+            dragged_person = undefined;
+            displayData();
+            dragging = false;
+        }
+
+        async function displayData()
+        {
+        try 
+        {
+            const fetchRequest = await fetch(`http://localhost:8000/display`);
+
+            document.getElementById("reservation").innerHTML = '';
+            const title = document.createElement('h3');
+            title.textContent = "Lista rezerwacji gości"
+            title.classList.add("d-flex", "justify-content-center")
+            document.getElementById("reservation").appendChild(title);
+
+            const JSONdata = await fetchRequest.json();
+
+            JSONdata.currentData.map(single_record => {
+                const {room, guests} = single_record;
+
+                const row = document.createElement("div");
+                const container_below = document.createElement("div");
+                row.textContent = room;
+                row.draggable = true;
+                row.setAttribute("clicked", "false");
+                row.setAttribute("id", `room-${room}`);
+                row.classList.add("d-flex","justify-content-center");
+
+                container_below.setAttribute("id", `cont-${room}`);
+                
+                document.getElementById("reservation").appendChild(row);
+                document.getElementById("reservation").appendChild(container_below);
+
+                row.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (row.getAttribute("clicked") == "false")
+                    {
+                        guests.map(g => {
+                            const guest = document.createElement("div");
+                            guest.textContent = g;
+                            guest.room = room
+                            guest.draggable = true
+                            guest.classList.add("d-flex","justify-content-center");
+
+                            guest.addEventListener("dragstart", (e) => {
+                                dragged_room = guest.room;
+                                dragged_person = g;
+                                dragging = true;
+                            });
+
+                            guest.addEventListener("dragover", (e) => {
+                                e.preventDefault();
+                            });
+
+                            guest.addEventListener("drop", (e) => {
+                                e.preventDefault();
+                                if (dragging)
+                                {
+                                dragged_room = guest.room;
+                                document.getElementById("tytul-modulu").textContent = "Rezerwacja";
+                                document.getElementById("imie_i_nazwisko").value = '';
+                                document.getElementById("imie_i_nazwisko").readonly = false;
+                                document.getElementById("doessth").textContent = "Reserve";
+                                modal.show();
+                                }
+                            })
+
+                            container_below.appendChild(guest);
+                        })
+
+                        if (guests.length == 0)
+                        {
+                            const mess = document.createElement("div");
+                            mess.textContent = "Nie ma gości w tym pokoju";
+                            mess.classList.add("d-flex","justify-content-center");
+                            container_below.appendChild(mess);
+                            
+                            mess.addEventListener("dragover", (e) => {
+                                e.preventDefault();
+                            });
+
+                            mess.addEventListener("drop", (e) => {
+                                e.preventDefault();
+                                dragged_room = room;
+                                document.getElementById("tytul-modulu").textContent = "Rezerwacja";
+                                document.getElementById("imie_i_nazwisko").value = '';
+                                document.getElementById("imie_i_nazwisko").readonly = false;
+                                document.getElementById("doessth").textContent = "reserve";
+                                modal.show();
+                            })
+                        }
+
+                        row.setAttribute("clicked", "true");
+                    }
+                    else if(row.getAttribute("clicked") == "true")
+                    {
+                        container_below.innerHTML = '';
+                        row.setAttribute("clicked", "false");
+                    }
+                });
+            });
+        }
+        catch (error)
+        {
+            console.log(error);
+        }
+    }
+    
+    function isValidDate(date) {
+            const today = new Date();
+            return (
+                date.getFullYear() === today.getFullYear() &&
+                date.getMonth() === today.getMonth()
+            );
+    }
+
+    function createCalendar() {
+                const days = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat'];
+                
+                const calendar = document.getElementById("calendar");
+                const today = new Date();
+
+                const year_month = document.createElement('h4');
+                year_month.textContent = `${today.getMonth() + 1}/${today.getFullYear()}`;
+                calendar.appendChild(year_month);
+                
+                let row = document.createElement("div");
+                row.classList.add("calendar-row");
+                
+                for (let i = 0; i < 7; i++) {
+                    let column = document.createElement("div");
+                    column.classList.add("calendar-col");
+                    column.textContent = days[i];
+                    row.appendChild(column);
+                }
+
+                calendar.appendChild(row);
+
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                const firstDayOfWeek = firstDay.getDay();
+                
+                row = document.createElement("div");
+                row.classList.add("calendar-row");
+                
+                // zapelnienie poczatku miesiaca
+                for (let i = 0; i < firstDayOfWeek; i++) {
+                    let column = document.createElement("div");
+                    column.classList.add("calendar-col");
+                    row.appendChild(column);
+                }
+                
+                let currentDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                let dayCount = firstDayOfWeek;
+                
+
+                while (isValidDate(currentDay)) {
+                    if (dayCount % 7 === 0 && dayCount > 0) {
+                        calendar.appendChild(row);
+                        row = document.createElement("div");
+                        row.classList.add("calendar-row");
+                    }
+                    
+                    let column = document.createElement("div");
+                    column.classList.add("calendar-col");
+                    column.textContent = currentDay.getDate();
+                    column.draggable = true;
+                    column.setAttribute("id", `day-${column.textContent}`);
+
+                    column.addEventListener('dragstart', (e) => {
+                        dragged_date = e.target.textContent;
+                        dragging = true;
+                    });
+
+                    column.addEventListener("dragover", (e) => {
+                        e.preventDefault();
+                    });
+
+                    column.addEventListener('drop', (e) => {
+                        if (dragging) {
+                            e.preventDefault();
+                            document.getElementById("tytul-modulu").textContent = "Anulowanie rezerwacji";
+                            document.getElementById("imie_i_nazwisko").value = dragged_person;
+                            document.getElementById("imie_i_nazwisko").readonly = true;
+                            document.getElementById("doessth").textContent = "Cancel reservation";
+                            modal.show();
+                        }
+                    })
+
+                    row.appendChild(column);
+                    
+                    currentDay.setDate(currentDay.getDate() + 1);
+                    dayCount++;
+                }
+                while(dayCount % 7 !== 0)
+                {
+                    let column = document.createElement("div");
+                    column.classList.add("calendar-col");
+                    column.draggable = true;
+
+                    column.addEventListener('dragstart', (e) => {
+                        dragged_date = event.target.value;
+                    });
+
+                    column.addEventListener("dragover", (e) => {
+                        e.preventDefault();
+                    });
+
+                    column.addEventListener("dragover", (e) => {
+                        e.preventDefault();
+                    });
+
+                    column.addEventListener('dragend', (e) => {
+                        dragged_date = undefined;
+                    });
+
+                    row.appendChild(column);
+                    dayCount++;
+                }
+                calendar.appendChild(row);
+            }
+        displayData();
+        createCalendar();
+
+        const modalButton = document.getElementById('doessth');
+
+        modalButton.addEventListener('click', (e) => {
+            if (modalButton.textContent === 'Reserve') {
+                reserve(e);
+                onclose(e); 
+            } else if (modalButton.textContent === 'Cancel reservation') {
+                cancel(e);
+                onclose(e);
+            }
+        });
+
     </script>
 </body>
 </html>

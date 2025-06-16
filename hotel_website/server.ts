@@ -98,6 +98,20 @@ router
         return;
     }
 })
+.get("/display", async (ctx : Context) => {
+    try 
+    {
+        const getCurrentData = await CurrentData.find({}).toArray();
+        ctx.response.status = 200;
+        ctx.response.body = JSON.stringify({ currentData : getCurrentData})
+    }
+    catch (error : any) {
+        console.log("[ERROR LOAD] ", error.message);
+        ctx.response.status = 500;
+        ctx.response.body = JSON.stringify({ error: "Failed to load data" });
+        return;
+    }
+})
 .post("/display", async (ctx : Context) => {
     const reqBodyJson: { room : number } = await ctx.request.body.json();
     if (reqBodyJson.room)
@@ -133,6 +147,7 @@ router
 })
 .post("/addReservations",async (ctx: Context) => {
     const reqBodyJson: { room : number, guest : string } = await ctx.request.body.json();
+    console.log(reqBodyJson.room," |", reqBodyJson.guest);
     if (reqBodyJson.room && reqBodyJson.guest)
     {
     try {

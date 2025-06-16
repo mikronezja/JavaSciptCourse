@@ -122,9 +122,9 @@ router
 .get("/:faculty", async (ctx: RouterContext<"/:faculty">) => {
     const faculty : string = ctx.params.faculty;
     if (!faculty) {
-    ctx.response.status = 400;
-    ctx.response.body = "Faculty parameter is required.";
-    return;
+        ctx.response.status = 400;
+        ctx.response.body = "Faculty parameter is required.";
+        return;
     }
     const table: Data[] = await students.find({faculty: faculty}).toArray();
     try
