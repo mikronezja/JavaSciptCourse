@@ -148,84 +148,121 @@
           //--------------------------------------------------------------------------
           // Configuration and execution of the (asynchronous) query to the web server
           //--------------------------------------------------------------------------
-              ((http_method) => {
-                  if(http_method === 'GET')
-                      return fetch(`http://localhost:8000/submit?name=${encodeURIComponent(name)}`, { // TO BE MODIFIED
-                          method: 'GET',
-                          credentials: "include", // DO NOT MODIFY OR REMOVE
-                          headers: {
-                              //****************************************************************************************
-                              // What is the acceptable data type—the server part should return data of the given type
-                              //****************************************************************************************
-                              Accept: accept
-                          }
-                      });
-                  if(http_method === 'POST')
-                      return fetch('http://localhost:8000/submit', {
-                          method: 'POST',
-                          credentials: "include", // // DO NOT MODIFY OR REMOVE
-                          // TO BE ADDED — you need to determine the content of the body
-                          body: `name=${encodeURIComponent(name)}`,
-                          headers: {
-                                // TO BE ADDED: you must specify the value of the 'Content-type' header — you must inform the server that the body content contains data of the "application/x-www-form-urlencoded" type
-                              'Content-type': 'application/x-www-form-urlencoded',
-                              //****************************************************************************************
-                              // What is the acceptable data type—the server part should return data of the given type
-                              //****************************************************************************************
-                              Accept: accept
-                          }
-                  });
-      
-          })(http_method) // a promise is returned
-          .then(function (response) { // if the promise is fulfilled
-              if (!response.ok)
-                  throw Error(response.statusText);
-      
-              console.group('Fetch API');
-              console.log(`HTTP method ⟶\t\t${http_method}\nResponse type ⟶\t${response_type}\nInput data ⟶\t\t${name}`);
-              let result;
-      
-              if (!response.headers.get('content-type')?.includes('application/json')) {
-                  // If the received data is plain text or an XML document
-                  result = response.text(); 
-              }
-              else {
-                  //If the received data is a JSON document
-                  result = response.json();
-              }
-              console.log("FETCH API: ", result);
-              console.groupEnd();   
-              if(show_alert) {
-                  result.then(data => {
-                      let alertMessage = "";
-                      if (response_type === 'json') {
-
-                          alertMessage = JSON.stringify(data);
-
-                      } else if (response_type === 'xml') {
-
-                          alertMessage = data;
-
-                      } else {
-                        alertMessage = data;
-                      }
-                      document.getElementById("response_div").textContent = alertMessage;
-                  });
-              }
-              else {
-                  results.set(`fetch ${http_method} ${response_type}`, result);
-                  dispatchEvent(received);
-              }
-          })
-          .catch(function (error) { // if the promise is rejected
-              window.alert(error);
-          });
+            
+            (async (http_method) => {
+                try {
+                    let fetchRequest;
+                    
+                    if(http_method === 'GET') {
+                        fetchRequest = await fetch(`http://localhost:8000/submit?name=${encodeURIComponent(name)}`, {
+                            method: 'GET',
+                            credentials: "include",
+                            headers: {
+                                Accept: accept
+                            }
+                        });
+                    }
+                    else if (http_method === 'POST') {
+                        fetchRequest = await fetch('http://localhost:8000/submit', {
+                            method: 'POST',
+                            credentials: "include",
+                            body: `name=${encodeURIComponent(name)}`,
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                Accept: accept
+                            }
+                        });
+                    }
+                   
+                    if (!fetchRequest.ok) {
+                        throw new Error(`HTTP error! status: ${fetchRequest.status}`);
+                    }
+                    
+                    console.group('Fetch API');
+                    console.log(`HTTP method ⟶\t\t${http_method}\nResponse type ⟶\t${response_type}\nInput data ⟶\t\t${name}`);
+                    
+                    let result;
+                    if (!fetchRequest.headers.get('content-type')?.includes('application/json')) {
+                        result = await fetchRequest.text(); 
+                    } else {
+                        result = await fetchRequest.json();
+                    }
+                    
+                    console.log("FETCH API: ", result);
+                    console.groupEnd();   
+                    
+                    if(show_alert) {
+                        let alertMessage = "";
+                        if (response_type === 'json') {
+                            alertMessage = JSON.stringify(result);
+                        } else {
+                            alertMessage = result;
+                        }
+                        document.getElementById("response_div").textContent = alertMessage;
+                    } else {
+                        results.set(`fetch ${http_method} ${response_type}`, result);
+                        dispatchEvent(received);
+                    }
+                }
+                catch (err) {
+                    console.log(err);
+                }
+            })(http_method);
       }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mocha/mocha.js"> </script>
     <script type="module">
       import { expect } from 'https://cdn.jsdelivr.net/npm/chai/chai.js' 
       window.expect = expect
+    </script>
+    <script>
+      function getTime(europe_city) {
+        const data = new Promise( (resolve, reject) => {
+          fetch(`https://timeapi.io/api/Time/current/zone?timeZone=Europe/${europe_city}`)
+                .then(response => {
+                  if (response.status == 200) {
+                    return response.json();
+                  } else if (response.status == 400) {
+                    return response.json().then(errorData => {
+                      throw new Error(errorData);
+                    });
+                  }
+                  else
+                  {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                  }
+                })
+                .then(jsonData => {
+                  resolve(jsonData);
+                })
+                .catch(err => {
+                  console.log(err);
+                  reject(`blad wczytywania : ${err}`);
+                });
+            });
+
+            return new Promise((resolve, reject) => {
+              data
+                .then(result => {
+                  resolve(result);
+                })
+                .catch(error => {
+                  reject(`[GET TIME] - blad przy wykonywaniu obietnicy! ${error}`);
+                });
+            });
+      }
+
+      function manageGetTime()
+      {
+          const cityName = document.getElementById("city").value;
+          getTime(cityName)
+          .then(data => {
+              document.getElementById("response_div").textContent = data.time;
+          })
+          .catch(error => {
+              document.getElementById("response_div").textContent = error;
+          });
+      }
     </script>
   </head>
   <body>
@@ -290,6 +327,11 @@
           </td>
         </tr>
       </table>
+      <div>
+        <label for="city"> </label>
+        <textarea id="city" placeholder="City"></textarea>
+        <button onclick="manageGetTime()">Submit</button>
+      </div>
     </main>
     <h1>Response:</h1>
     <div id="response_div">
